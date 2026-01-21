@@ -17,7 +17,8 @@
         font-size:28px;
         display: flex;
         justify-content: space-between;
-        gap: 16px;
+        gap: 30px;
+
     }
     .stat-name{
         text-transform: uppercase;

@@ -1,19 +1,21 @@
 <script setup>
     import IconLocation from '../icons/IconLocation.vue';
-import RainIcon from '../icons/weather/RainIcon.vue';
+    import RainIcon from '../icons/weather/RainIcon.vue';
     import SunCloudIcon from '../icons/weather/SunCloudIcon.vue';
     import SunIcon from '../icons/weather/SunIcon.vue';
 
-    const {dayData,temp, weatherCode} = defineProps({
+    const {dayData,temp, weatherCode, city, country,data} = defineProps({
         dayData: Object,
         temp: Number,
         weatherCode: Number,
         city: String,
         country: String,
+        data: Object,
+        activeIndex: Number,
     });
     function whatWeather(weatherCode){
         if(weatherCode >= 1063){
-            return "Дождливо/Снежно"
+            return temp > 0 ? "Дождливо" : "Снежно"
         }
         else if(weatherCode >1006 && weatherCode < 1063){
             return "Облачно"
@@ -25,7 +27,7 @@ import RainIcon from '../icons/weather/RainIcon.vue';
 </script>
 
 <template>
-    <div class="panel">
+    <div class="panel" v-if="data">
         <div class="day-geo">
             <template v-if="dayData">
                 <h2 class="week-day">{{ dayData.weekDay.toUpperCase() }}</h2>
@@ -41,7 +43,7 @@ import RainIcon from '../icons/weather/RainIcon.vue';
             </div>
             <div class="info">
                 <p class="temp">{{ temp }} °C</p>
-                <p class="weather">{{ whatWeather(weatherCode) }}</p>
+                <p class="weather">{{ data.forecast.forecastday[activeIndex].day.condition.text}}</p>
             </div>
         </div>
     </div>

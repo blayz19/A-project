@@ -10,7 +10,9 @@
   let error = ref(null);
   let activeIndex = ref(0);
   let city = ref("Москва");
+  
   provide(cityProvide, city);
+  
   watch(city, ()=>{
     getCity(city.value);
   });
@@ -42,7 +44,6 @@
   return formatDate(dateStr);
 });
 
-// Функция форматирования даты
 function formatDate(dateString) {
   const date = new Date(dateString);
   const options = { 
@@ -52,11 +53,9 @@ function formatDate(dateString) {
     weekday: 'long' 
   };
   
-  // Русская локаль
   return date.toLocaleDateString('ru-RU', options);
 }
 
-// Если нужно раздельно день недели и дату
 const weekDay = computed(() => {
   if (!data.value) return '';
   const dateStr = data.value.forecast.forecastday[activeIndex.value].date;
@@ -91,13 +90,17 @@ const dayMonthYear = computed(() => {
         :weather-code="data.forecast.forecastday[activeIndex].day.condition.code"
         :city="data.location.name"
         :country="data.location.country"
+        :data
+        :active-index="activeIndex"
       >
       </PanelLeft>
     </div>
     
     <div class="right-panel">
-      <PanelRight :data :error :active-index="activeIndex" 
-      @select-index="(i)=> activeIndex = i">
+      <PanelRight :data 
+      :error 
+      :active-index="activeIndex" 
+      @select-index="(i) => activeIndex = i">
       </PanelRight>
     </div>
 
