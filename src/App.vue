@@ -1,47 +1,22 @@
 <script setup>
-  import Button from "./components/Button.vue";
-  import Stat from "./components/Stat.vue";
-  import IconComponent from "./icons/IconLocation.vue";
-  import CitySelect from "./components/CitySelect.vue";
-  import { nextTick, reactive, ref, computed } from "vue";
-  import Error from "./components/Error.vue";
-  import SunIcon from "./icons/weather/SunIcon.vue";
-  import RainIcon from "./icons/weather/RainIcon.vue";
-  import SunCloudIcon from "./icons/weather/SunCloudIcon.vue";
-  import DayCard from "./components/DayCard.vue";
-
-
-  const API_ENDPOINT = "https://api.weatherapi.com/v1";
+  import PanelRight from "./components/PanelRight.vue";
+  import PanelLeft from "./components/PanelLeft.vue";
+  import { onMounted, provide, ref, watch, computed } from "vue";
+  import { cityProvide, dayProvide } from "./constants";
+  import { API_ENDPOINT } from "./constants";
   
-  const errorMap = new Map([
-    [1006,"Указанный город не найден"]
-  ]);
 
   let data = ref();
   let error = ref(null);
-  
-  const errorDisplay = computed(() => {
-    return errorMap.get(error.value?.error?.code);
+  let activeIndex = ref(0);
+  let city = ref("Москва");
+  provide(cityProvide, city);
+  watch(city, ()=>{
+    getCity(city.value);
   });
-  
-  const dataModified = computed(()=>{
-    //if(!data.value){
-    // return [];
-    //}
-    return [{
-      label:"Влажность",
-      stat: data.value.current.humidity + "%",
-    },
-    {
-      label: "Облачность",
-      stat: data.value.current.cloud + "%",
-    },
-    {
-      label: "Ветер",
-      stat: data.value.current.wind_kph + "км/ч",
-    },
-  ]
-  })
+  onMounted(()=>{
+    getCity(city.value);
+  });
   
   async function getCity(city){
     const params = new URLSearchParams({
@@ -60,34 +35,101 @@
     data.value = await res.json();
     
   }
+  const formattedDate = computed(() => {
+  if (!data.value) return null;
   
+  const dateStr = data.value.forecast.forecastday[activeIndex.value].date;
+  return formatDate(dateStr);
+});
+
+// Функция форматирования даты
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric',
+    weekday: 'long' 
+  };
+  
+  // Русская локаль
+  return date.toLocaleDateString('ru-RU', options);
+}
+
+// Если нужно раздельно день недели и дату
+const weekDay = computed(() => {
+  if (!data.value) return '';
+  const dateStr = data.value.forecast.forecastday[activeIndex.value].date;
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('ru-RU', { weekday: 'long' });
+});
+
+const dayMonthYear = computed(() => {
+  if (!data.value) return '';
+  const dateStr = data.value.forecast.forecastday[activeIndex.value].date;
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('ru-RU', { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric' 
+  });
+});
+
 </script>
 
 <template>
-  
   <main class="main">
-    <Error :error.value="errorDisplay"></Error>
-    <div v-if="data">
-      <Stat v-for="item in dataModified" v-bind="item" :key="item.label"></Stat>
-      <div class="day-cards" v-if="data">
-        <DayCard v-for="item in data.forecast.forecastday" :weatherCode="item.day.condition.code" :temp="item.day.avgtemp_c" :date='new Date(item.date)' :key="item.date"></DayCard>
-      </div>
+    
+    <div class="left-panel" v-if="data">
+      <PanelLeft :day-data="{
+          raw: data.forecast.forecastday[activeIndex].date,
+          formattedDate: formattedDate,
+          weekDay: weekDay,
+          dayMonthYear: dayMonthYear
+        }"
+        :temp="data.forecast.forecastday[activeIndex].day.avgtemp_c" 
+        :weather-code="data.forecast.forecastday[activeIndex].day.condition.code"
+        :city="data.location.name"
+        :country="data.location.country"
+      >
+      </PanelLeft>
+    </div>
+    
+    <div class="right-panel">
+      <PanelRight :data :error :active-index="activeIndex" 
+      @select-index="(i)=> activeIndex = i">
+      </PanelRight>
     </div>
 
-    <CitySelect @select-city = "getCity"></CitySelect>
   </main>
-  
 </template>
 
 <style scoped>
+  
+  
   .main{
+    display: flex;
+    align-items: center;
+    
+  }
+  .right-panel{
     background: var(--color-bg-main);
     padding: 60px 50px;
-    border-radius: 25px;
+    border-radius: 0px 25px 25px 0px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+     margin-left: -30px; 
+    z-index: 1;
+    position: relative;
+  }
+  .left-panel{
+    background: var(--gradient);
+    min-width: 530px;
+    min-height: 690px;
+    border-radius: 30px;
+    z-index: 99999; 
   }
   .day-cards{
     display: flex;

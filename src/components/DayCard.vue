@@ -1,22 +1,26 @@
 <script setup>
+import { computed, inject } from 'vue';
 import RainIcon from '../icons/weather/RainIcon.vue';
 import SunCloudIcon from '../icons/weather/SunCloudIcon.vue';
 import SunIcon from '../icons/weather/SunIcon.vue';
+import { dayProvide } from '../constants';
 
-    const {date, temp, weatherCode} = defineProps({
+    const {date, temp, weatherCode, isActive} = defineProps({
         date: Date,
         temp: Number,
         weatherCode: Number,
+        isActive: Boolean,
     });
+    
 
 </script>
 
 <template>
     
-    <button class="card">
-        <SunIcon v-if="weatherCode <= 1003" />
-        <SunCloudIcon v-else-if="weatherCode >=1003 && weatherCode <=1009" />
-        <RainIcon v-else-if="weatherCode > 1010 " />
+    <button class="card" :class="{active: isActive}">
+        <SunIcon v-if="weatherCode <= 1003" :color="isActive ? 'black':'white'" />
+        <SunCloudIcon v-else-if="weatherCode >1006 && weatherCode < 1063" :color="isActive ? 'black':'white'" />
+        <RainIcon v-else-if="weatherCode >= 1063 " :color="isActive ? 'black':'white'" />
         <p class="day-card_day">{{ date.toLocaleDateString('ru-RU', {weekday:"short"}) }}</p>
         <p class="day-card_temp">{{ temp }} °C</p>
     </button>
@@ -47,7 +51,11 @@ import SunIcon from '../icons/weather/SunIcon.vue';
         font-size: 20px;
         font-weight: 700;
     }
-    .card:hover{
+    .card:not(.active):hover{
         background-color:#3a434f ;
+    }
+    .active{
+        background-color: var(--color-primary);
+        color: var(--color-primary-inverted);
     }
 </style>

@@ -1,49 +1,34 @@
 <script setup>
+    import { cityProvide } from '../constants';
     import IconLocation from '../icons/IconLocation.vue';
     import Button from './Button.vue';
     import Input from './Input.vue';
-    import { onBeforeMount, onMounted, onUpdated, ref, watch } from 'vue';
+    import { inject, onBeforeMount, onMounted, onUpdated, ref, watch } from 'vue';
+
+    const city = inject(cityProvide);
+    const inputValue = ref(city.value);
 
 
-    onMounted(()=>{
-        console.log('City select m');
-        
-    });
-
-    const emit = defineEmits({
-        selectCity(payload){
-            return payload ? true : false; 
-        },
-    });
     
     let isEdited = ref(false);
-    let city = ref("Moscow");
+    
     
     function select(){
         isEdited.value = false;
-        emit('selectCity', city.value);
+        city.value = inputValue.value;
     }
 
     function edit(){
         isEdited.value = true;
     }
 
-    watch(city, () =>{
-        console.log(city.value);
-    });
     
-    onMounted(()=>{
-        emit("selectCity", city.value);
-    })
-
-   
-
 </script>
 
 <template>
     <div class = "city-select">
         <div v-if="isEdited" class="city-input">
-            <Input v-model="city" @keyup.enter="select()"/>
+            <Input v-model="inputValue" @keyup.enter="select()" v-focus/>
             <Button @click="select()">
             Сохранить
             </Button>
